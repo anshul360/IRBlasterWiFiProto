@@ -28,7 +28,6 @@ void loop() {
   String clientReq = parseRequest(espResp);
   espResp = "";
   
-  //Serial.flush();
   if(clientReq != "blank") {
     blastIR(clientReq);
     sendResponse(clientReq);
@@ -64,7 +63,6 @@ void setupESPSerial(int baud) {
 
 void setupESPServer() {
   Serial.println("Server Setup Started----->");
-  //Serial.println("--------------------------");
   runCommand( "AT" );
   while(!softSerial.find("OK")) {
     boolean breakw = waitAndRetry("AT", 5);
@@ -77,23 +75,11 @@ void setupESPServer() {
     if(breakw) break;
   }
   
-  /*runCommand( "AT+CWMODE=3" ); //mode: Station + SoftAP
-  while(!softSerial.find("OK")) {
-    boolean breakw = waitAndRetry("AT+CWMODE=3", 5);
-    if(breakw) break;
-  }*/
-  
   runCommand( "AT+CIPMUX=1" ); //allow multiple connections
   while(!softSerial.find("OK")) {
     boolean breakw = waitAndRetry("AT+CIPMUX=1", 5);
     if(breakw) break;
   }
-  
-  /*runCommand( "AT+CIFSR" ); //query IP
-  while(!softSerial.find("OK")) {
-    boolean breakw = waitAndRetry("AT+CIFSR", 5);
-    if(breakw) break;
-  }*/
   
   runCommand( "AT+CIPSERVER=1,80" ); //start server at Channel: 1, Port: 8080
   while(!softSerial.find("OK")) {
@@ -101,8 +87,6 @@ void setupESPServer() {
     if(breakw) break;
   }
   
-  //runCommand("AT+CWJAP=\""+(String)SSID+"\",\""+(String)PWD+"\"");
-  //Serial.println("----------------------------");
   Serial.println("Server Setup Completed. Ready for Action!");
 }
 
@@ -219,56 +203,17 @@ void buildArr(uint16_t* specific) {
 }
 
 void sendResponse(String clientReq) {
-  /*char success[6];
-  if(clientReq.indexOf("error") != -1) {
-    strcpy(success, "false");
-  } else {
-    strcpy(success, "true");
-  }*/
   String espCh = clientReq.substring( clientReq.indexOf(",")+1,  clientReq.indexOf(",")+2);
   String jsonr = "{\"sucess\": true}";
   
   String tempresp = "";
-  //while(tempresp.indexOf("OK") == -1) {
   runCommand( "AT+CIPSEND="+ espCh +"," + (String)resp.length() );
   runCommand( resp );
-//    for(int i = 0; i < 20; i++) {
-//      char c = softSerial.read();
-//      tempresp += String(c);
-//    }
-//    Serial.println(tempresp);
-//  }
-  runCommand( "AT+CIPSEND="+ espCh +"," + (String)jsonr.length() );
-  runCommand( jsonr );
-  
-  /*while(!softSerial.find("OK")) {
-    boolean breakw = waitAndRetry("AT+CIPSEND="+ espCh +"," + (String)resp.length(), 5);
-    if(breakw) break;
-  } 
-  
-  runCommand( resp );
-  while(!softSerial.find("OK")) {
-    boolean breakw = waitAndRetry(resp, 5);
-    if(breakw) break;
-  }
 
   runCommand( "AT+CIPSEND="+ espCh +"," + (String)jsonr.length() );
-  while(!softSerial.find("OK")) {
-    boolean breakw = waitAndRetry("AT+CIPSEND="+ espCh +"," + (String)jsonr.length(), 5);
-    if(breakw) break;
-  } 
-  
   runCommand( jsonr );
-  while(!softSerial.find("OK")) {
-    boolean breakw = waitAndRetry(jsonr, 5);
-    if(breakw) break;
-  }*/
+  
   delay(200);
   runCommand ( "AT+CIPCLOSE="+espCh ); //close all connections
-  /*runCommand ( "AT+CIPCLOSE=5" );
-  while(!softSerial.find("OK")) {
-    boolean breakw = waitAndRetry("AT+CIPCLOSE=5", 2);
-    if(breakw) break;
-  }*/
   
 }
