@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script type="text/javascript">
+			function sendreq(opt) {
+				var qparam = opt.split('=');
+				var tempch = '';
+
+				clearErr();
+				
+				console.log(qparam);
+				
+				if(qparam[1] < 0 || qparam[1].length == 0 || qparam[1].length > 3 || (qparam[0] == 'fan' && (qparam[1].length > 1 || qparam[1] > 5))) {
+					
+					if(qparam[0] == 'fan') {
+						document.querySelector(".fanvalidity").innerText = "Invalid Request. Pease enter valid Fan Speed.";
+					} else {
+						document.querySelector(".channelvalidity").innerText = "Invalid Request. Pease enter valid Channel Number";
+					}
+					return;
+				} else if(qparam[1].length < 3 && qparam[0] == 'channel') {
+					for(i = 0; i < 3-qparam[1].length; i++) {
+						tempch += '0';
+					}
+					tempch += qparam[1];
+					qparam[1] = tempch;
+				}
+				opt = qparam.join('=');
+
+				console.log(opt);
+				callController(opt);
+			}
+
+			const callController = async (opt) => {
+
+				document.querySelector('.main').style.display = "none";
+				document.querySelector('.loader').style.display = "block";
+				document.querySelector('.mainloader').style.display = "flex";
+				const response = await fetch('http://192.168.1.24/?'+opt, {
+					method: "GET",
+					headers: {
+						
+					}
+				});
+				//const response = await fetch('https://google.com/');
+				const rjson = await response.json(); //extract JSON from the http response
+				if(rjson.success == false) {
+					alert("Something is not right!! Reset and Try Again!!!");
+				}
+				document.querySelector('.main').style.display = "flex";
+				document.querySelector('.loader').style.display = "none";
+				document.querySelector('.mainloader').style.display = "none";
+			}
+
+			function clearErr() {
+				for (errspan of document.getElementsByClassName("validity")) {
+					errspan.innerText = '';
+				}
+			}
+		</script>
+		<style type="text/css">
+			.main {
+				width: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column;
+			}
+			.mainloader {
+				width: 100%; display: none; align-items: center; justify-content: center; flex-direction: column;
+			}
+			.head {
+				font-weight: 5; font-size: 48px; 
+			}
+			.section {
+				border-style: ridge; padding: 1%; width: 100%;
+				display: flex; flex-direction: column; align-items: center;
+			}
+			.sectionspan {
+				font-weight: 5; font-size: 40px; text-decoration: underline; padding-bottom: 20px;
+			}
+			.fontcommon {
+				color: darkgrey; font-family: cursive;
+			}
+			.cbutton {
+				border-radius: 20;
+			}
+			.validity {
+				font-weight: 5; font-size: 20px; color: red;
+			}
+			label {
+				font-weight: 5; font-size: 30px; padding: 15px;
+			}
+			input {
+				font-weight: 5; font-size: 30px; margin: 15px;
+			}
+			select {
+				font-weight: 5; font-size: 30px; margin: 15px;
+			}
+			.loader {
+				border: 16px solid #f3f3f3; border-radius: 50%; border-top: 16px solid #3498db; width: 120px; height: 120px; -webkit-animation: spin 2s linear infinite; animation: spin 2s linear infinite; display: none;
+			}
+
+			/* Safari */
+			@-webkit-keyframes spin {
+				0% { -webkit-transform: rotate(0deg); }
+				100% { -webkit-transform: rotate(360deg); }
+			}
+
+			@keyframes spin {
+				0% { transform: rotate(0deg); }
+				100% { transform: rotate(360deg); }
+			}
+		</style>
+	</head>
+	<body>
+		<form>
+			<div class="mainloader">
+				<div class="loader"></div>
+			</div>
+			<div class="main">
+				<div>
+					<span class="head fontcommon">The Controller</span>
+				</div>
+				<div class="section">
+					<span class="sectionspan fontcommon">TV</span>
+					<div>
+						<label for="channel" class="fontcommon">Channel Number(3 digits)</label>
+						<input type="number" class="channel" name="channel" min="0" max="999" step="1" id="channel" />
+						<input type="button" value="Go" class="cbutton" onclick="sendreq('channel='+document.getElementById('channel').value);" />
+					</div>
+					<div>
+						<span class="channelvalidity validity"></span>
+					</div>
+				</div>
+				<div class="section">
+					<span class="sectionspan fontcommon">FAN</span>
+					<div>
+						<input type="button" value="Fan On/Off" onclick="sendreq('fan=0');" style="font-size: 30px">
+					</div>
+					<div>
+						<label for="fanspeed" class="fontcommon">Fan Speed(enter between 1-5)</label>
+						<!--<input type="number" name="fanspeed" class="fanspeed" min="1" max="5" step="1" id="fanspeed" />-->
+						<select name="fanspeed" class="fanspeed" id="fanspeed">
+							<option value="1">1</option> 
+							<option value="2">2</option>
+							<option value="3">3</option>
+							<option value="4">4</option>
+							<option value="5">5</option>
+						</select>
+						<input type="button" value="Go" class="cbutton" onclick="sendreq('fan='+document.getElementById('fanspeed').value);" />
+					</div>
+					<div>
+						<span class="fanvalidity validity"></span>
+					</div>
+				</div>
+			</div>
+		</form>
+	</body>
+</html>
